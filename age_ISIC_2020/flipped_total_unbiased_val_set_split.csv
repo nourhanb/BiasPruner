@@ -1,0 +1,89 @@
+image_name,patient_id,sex,age,anatom_site_general_challenge,diagnosis,benign_malignant,target
+ISIC_7053159,IP_1671181,female,0,torso,unknown,benign,0
+ISIC_4067791,IP_7584179,male,0,lower extremity,unknown,benign,0
+ISIC_7872595,IP_1422713,male,1,torso,melanoma,malignant,1
+ISIC_8296246,IP_0248387,female,1,lower extremity,unknown,benign,0
+ISIC_7261174,IP_8041141,female,0,head/neck,melanoma,malignant,1
+ISIC_1885174,IP_4871455,male,1,torso,nevus,benign,0
+ISIC_0625777,IP_5881758,female,1,upper extremity,unknown,benign,0
+ISIC_7319691,IP_2301815,female,0,torso,unknown,benign,0
+ISIC_8207033,IP_9820186,male,1,lower extremity,unknown,benign,0
+ISIC_1265382,IP_8742468,male,1,torso,unknown,benign,0
+ISIC_4508878,IP_3010556,male,1,upper extremity,melanoma,malignant,1
+ISIC_7035246,IP_1728609,male,0,torso,melanoma,malignant,1
+ISIC_4223155,IP_4938382,female,0,lower extremity,melanoma,malignant,1
+ISIC_9770677,IP_7373371,female,1,head/neck,melanoma,malignant,1
+ISIC_6634951,IP_5773889,male,1,torso,melanoma,malignant,1
+ISIC_7658729,IP_8869881,female,0,lower extremity,melanoma,malignant,1
+ISIC_4676270,IP_7460121,female,0,torso,melanoma,malignant,1
+ISIC_3446357,IP_2101945,male,1,upper extremity,melanoma,malignant,1
+ISIC_1821825,IP_3562983,male,0,torso,unknown,benign,0
+ISIC_9291222,IP_2785084,male,1,lower extremity,nevus,benign,0
+ISIC_8737794,IP_6533286,male,1,torso,melanoma,malignant,1
+ISIC_8124900,IP_3293337,male,0,torso,melanoma,malignant,1
+ISIC_9714746,IP_2442926,female,1,lower extremity,unknown,benign,0
+ISIC_2412113,IP_2025600,female,0,upper extremity,melanoma,malignant,1
+ISIC_5266696,IP_6982571,male,0,torso,unknown,benign,0
+ISIC_8617277,IP_3281766,female,0,torso,melanoma,malignant,1
+ISIC_5343231,IP_1515878,female,1,head/neck,melanoma,malignant,1
+ISIC_1698942,IP_2986217,male,1,torso,melanoma,malignant,1
+ISIC_5131198,IP_0512752,male,0,torso,unknown,benign,0
+ISIC_7346739,IP_2947236,female,1,upper extremity,melanoma,malignant,1
+ISIC_9882411,IP_4479736,female,0,upper extremity,unknown,benign,0
+ISIC_9351516,IP_9455054,male,0,upper extremity,melanoma,malignant,1
+ISIC_5886468,IP_8235556,female,0,upper extremity,unknown,benign,0
+ISIC_6786198,IP_5086592,male,0,,melanoma,malignant,1
+ISIC_1484659,IP_4137989,female,0,lower extremity,melanoma,malignant,1
+ISIC_4266157,IP_9564988,female,0,torso,nevus,benign,0
+ISIC_9725585,IP_1264754,female,1,torso,unknown,benign,0
+ISIC_2481044,IP_9373614,female,0,torso,melanoma,malignant,1
+ISIC_8106899,IP_5609476,male,1,torso,melanoma,malignant,1
+ISIC_2867740,IP_7021484,male,1,head/neck,unknown,benign,0
+ISIC_7624108,IP_9544996,female,0,torso,unknown,benign,0
+ISIC_2342769,IP_7270568,female,1,head/neck,melanoma,malignant,1
+ISIC_8040024,IP_8171851,female,0,torso,melanoma,malignant,1
+ISIC_1393771,IP_4391034,female,1,torso,melanoma,malignant,1
+ISIC_7577197,IP_7105810,female,1,lower extremity,unknown,benign,0
+ISIC_0869745,IP_8968018,female,1,torso,nevus,benign,0
+ISIC_3359880,IP_9921339,female,0,torso,melanoma,malignant,1
+ISIC_2047914,IP_0719925,male,1,,unknown,benign,0
+ISIC_6129538,IP_2360609,male,0,torso,lichenoid keratosis,benign,0
+ISIC_5561003,IP_8020102,male,0,lower extremity,melanoma,malignant,1
+ISIC_7730937,IP_3281766,female,0,torso,melanoma,malignant,1
+ISIC_7923858,IP_5889408,female,0,upper extremity,unknown,benign,0
+ISIC_3743446,IP_3057277,male,0,,unknown,benign,0
+ISIC_5527224,IP_5874294,male,1,head/neck,melanoma,malignant,1
+ISIC_6931277,IP_9772004,male,1,torso,melanoma,malignant,1
+ISIC_4791893,IP_3603767,female,1,torso,unknown,benign,0
+ISIC_7130929,IP_0442139,female,1,lower extremity,melanoma,malignant,1
+ISIC_0833889,IP_6352254,female,1,torso,melanoma,malignant,1
+ISIC_8521610,IP_6512345,male,1,torso,melanoma,malignant,1
+ISIC_0376301,IP_9718268,female,1,lower extremity,unknown,benign,0
+ISIC_7546219,IP_6613083,female,1,upper extremity,melanoma,malignant,1
+ISIC_3976496,IP_4211276,female,1,torso,melanoma,malignant,1
+ISIC_3049927,IP_6029068,male,0,lower extremity,unknown,benign,0
+ISIC_8751106,IP_6151980,female,1,torso,unknown,benign,0
+ISIC_8959928,IP_8235556,female,0,,unknown,benign,0
+ISIC_9199429,IP_6514499,male,0,head/neck,melanoma,malignant,1
+ISIC_3364832,IP_8267064,female,0,torso,unknown,benign,0
+ISIC_2406492,IP_5076578,male,0,lower extremity,melanoma,malignant,1
+ISIC_6993129,IP_6323321,male,0,torso,nevus,benign,0
+ISIC_2152051,IP_5691366,female,0,head/neck,nevus,benign,0
+ISIC_3819893,IP_9846692,female,0,torso,unknown,benign,0
+ISIC_1862087,IP_9380920,male,1,head/neck,unknown,benign,0
+ISIC_7287303,IP_5368914,male,1,lower extremity,melanoma,malignant,1
+ISIC_1770995,IP_4154441,female,1,lower extremity,unknown,benign,0
+ISIC_9026091,IP_5519306,male,0,torso,nevus,benign,0
+ISIC_2452729,IP_7241377,female,0,torso,nevus,benign,0
+ISIC_1877535,IP_8237561,female,0,upper extremity,unknown,benign,0
+ISIC_0210830,IP_6939959,female,1,torso,unknown,benign,0
+ISIC_5045600,IP_7005083,female,1,head/neck,melanoma,malignant,1
+ISIC_0502582,IP_9175987,male,1,lower extremity,melanoma,malignant,1
+ISIC_4730066,IP_2302748,female,1,lower extremity,melanoma,malignant,1
+ISIC_0506901,IP_7997841,male,0,upper extremity,unknown,benign,0
+ISIC_3915890,IP_1665515,male,1,upper extremity,melanoma,malignant,1
+ISIC_0149568,IP_0962375,female,0,upper extremity,melanoma,malignant,1
+ISIC_9870885,IP_3298186,female,1,lower extremity,melanoma,malignant,1
+ISIC_9239862,IP_5517026,male,1,torso,unknown,benign,0
+ISIC_8817681,IP_8049735,male,0,upper extremity,nevus,benign,0
+ISIC_4188998,IP_4014685,female,1,torso,unknown,benign,0

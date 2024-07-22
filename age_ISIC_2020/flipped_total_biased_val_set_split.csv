@@ -1,0 +1,65 @@
+image_name,patient_id,sex,age,anatom_site_general_challenge,diagnosis,benign_malignant,target
+ISIC_3343475,IP_4576785,male,1,head/neck,melanoma,malignant,1
+ISIC_3416107,IP_3335629,male,1,lower extremity,melanoma,malignant,1
+ISIC_8692218,IP_4327880,male,1,lower extremity,melanoma,malignant,1
+ISIC_4000481,IP_7770500,male,1,upper extremity,melanoma,malignant,1
+ISIC_6067058,IP_4783134,female,0,upper extremity,nevus,benign,0
+ISIC_6779136,IP_3776544,male,0,torso,nevus,benign,0
+ISIC_0204819,IP_3623410,male,0,lower extremity,unknown,benign,0
+ISIC_0559541,IP_4548593,male,0,torso,unknown,benign,0
+ISIC_6228963,IP_3863213,male,1,torso,melanoma,malignant,1
+ISIC_5185074,IP_6121241,female,0,lower extremity,unknown,benign,0
+ISIC_9706034,IP_7770083,female,0,lower extremity,unknown,benign,0
+ISIC_7265673,IP_4612042,male,0,upper extremity,melanoma,malignant,1
+ISIC_7597293,IP_6267856,female,1,lower extremity,unknown,benign,0
+ISIC_0562987,IP_4667127,female,0,lower extremity,unknown,benign,0
+ISIC_6398283,IP_9329623,male,1,lower extremity,melanoma,malignant,1
+ISIC_8781281,IP_0981335,male,0,torso,unknown,benign,0
+ISIC_8381531,IP_6130936,male,1,upper extremity,melanoma,malignant,1
+ISIC_1958321,IP_1743439,male,1,upper extremity,unknown,benign,0
+ISIC_0717497,IP_4638162,male,0,upper extremity,nevus,benign,0
+ISIC_3446357,IP_2101945,male,1,upper extremity,melanoma,malignant,1
+ISIC_3821242,IP_1981261,female,1,head/neck,melanoma,malignant,1
+ISIC_6584579,IP_4130585,female,1,lower extremity,melanoma,malignant,1
+ISIC_7371801,IP_3293726,male,1,torso,melanoma,malignant,1
+ISIC_2975580,IP_8841455,male,1,head/neck,melanoma,malignant,1
+ISIC_4311544,IP_9144134,male,0,lower extremity,unknown,benign,0
+ISIC_0576951,IP_6049920,female,0,torso,unknown,benign,0
+ISIC_7968800,IP_6617725,female,0,upper extremity,nevus,benign,0
+ISIC_7079349,IP_6215369,male,1,torso,melanoma,malignant,1
+ISIC_8133350,IP_6838833,female,1,head/neck,melanoma,malignant,1
+ISIC_6000048,IP_4821632,female,0,lower extremity,unknown,benign,0
+ISIC_8969883,IP_3008149,male,1,torso,unknown,benign,0
+ISIC_7768782,IP_2810418,female,1,lower extremity,unknown,benign,0
+ISIC_4425657,IP_8502723,male,1,torso,melanoma,malignant,1
+ISIC_4847868,IP_2685241,male,0,upper extremity,unknown,benign,0
+ISIC_4067791,IP_7584179,male,0,lower extremity,unknown,benign,0
+ISIC_9963177,IP_1165806,male,1,torso,melanoma,malignant,1
+ISIC_6507412,IP_4544162,female,0,torso,unknown,benign,0
+ISIC_9770677,IP_7373371,female,1,head/neck,melanoma,malignant,1
+ISIC_1866770,IP_7517320,male,1,upper extremity,melanoma,malignant,1
+ISIC_5829938,IP_3237442,male,1,upper extremity,melanoma,malignant,1
+ISIC_1605988,IP_8136122,female,0,torso,unknown,benign,0
+ISIC_0227532,IP_0500536,male,0,torso,nevus,benign,0
+ISIC_5602826,IP_7644786,female,1,upper extremity,melanoma,malignant,1
+ISIC_2200197,IP_0915233,male,1,torso,melanoma,malignant,1
+ISIC_6971606,IP_9375901,female,0,torso,melanoma,malignant,1
+ISIC_3023646,IP_6658881,male,1,head/neck,melanoma,malignant,1
+ISIC_7546219,IP_6613083,female,1,upper extremity,melanoma,malignant,1
+ISIC_6089318,IP_2430100,female,1,torso,melanoma,malignant,1
+ISIC_5309572,IP_6105130,male,0,torso,unknown,benign,0
+ISIC_6460137,IP_3057277,male,0,,unknown,benign,0
+ISIC_8404470,IP_5724759,female,0,torso,unknown,benign,0
+ISIC_6931277,IP_9772004,male,1,torso,melanoma,malignant,1
+ISIC_3025889,IP_9067016,male,1,torso,melanoma,malignant,1
+ISIC_8875036,IP_0063782,female,0,lower extremity,unknown,benign,0
+ISIC_3965087,IP_1273286,male,0,torso,melanoma,malignant,1
+ISIC_8866651,IP_8375879,male,1,torso,melanoma,malignant,1
+ISIC_4312470,IP_7497232,male,0,torso,unknown,benign,0
+ISIC_1674797,IP_9180273,male,1,lower extremity,nevus,benign,0
+ISIC_6092849,IP_7950112,female,0,torso,unknown,benign,0
+ISIC_8209526,IP_8839187,male,0,upper extremity,unknown,benign,0
+ISIC_2342769,IP_7270568,female,1,head/neck,melanoma,malignant,1
+ISIC_4517738,IP_5181027,male,1,palms/soles,melanoma,malignant,1
+ISIC_8191055,IP_7123023,male,0,torso,unknown,benign,0
+ISIC_8108870,IP_0041255,female,0,torso,unknown,benign,0
