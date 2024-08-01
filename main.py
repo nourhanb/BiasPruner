@@ -1,3 +1,4 @@
+import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 import torch
@@ -12,32 +13,42 @@ from trainer import train_model
 from test import test
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, recall_score
 
+# Set up argument parser
+parser = argparse.ArgumentParser(description='Train BiasPruner')
 
-num_classes =2
-trainloader, valloader, testloader = get_dataset("Fitzpatrick17")
+parser.add_argument('--dataset', type=str, choices=['Fitzpatrick', 'ham', 'NIH'], default='Fitzpatrick', help='Name of the dataset to use.')
+parser.add_argument('--num_classes', type=int, default=2, help='Number of classes for classification.')
+parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate for the optimizer.')
+parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs to train the model.')
+parser.add_argument('--patience', type=int, default=5, help='Number of epochs to wait for improvement before early stopping.')
 
-print('done loading data ...')
+args = parser.parse_args()
+
+# Use arguments
+num_classes = args.num_classes
+learning_rate = args.learning_rate
+num_epochs = args.num_epochs
+patience = args.patience
+
+# Load dataset
+trainloader, valloader, testloader = get_dataset(args.dataset)
+
+print('Done loading data...')
 
 # Create ResNet18 model
 model = models.resnet18(pretrained=True)
-#model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 num_ftrs = model.fc.in_features
 model.fc = nn.Linear(num_ftrs, num_classes)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
+print(f'Device: {device}')
 model.to(device)
 
 # Set up loss function and optimizer
 criterion = nn.CrossEntropyLoss().to(device)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
 # Training loop
-import numpy as np
-
-# Assuming you have set up your model, optimizer, and criterion earlier
-
-num_epochs = 100
-patience = 5  # Number of epochs to wait for improvement
 best_val_loss = float('inf')
 counter = 0  # Counter to keep track of epochs without improvement
 
@@ -93,8 +104,8 @@ for epoch in range(num_epochs):
         print(f'Early stopping at epoch {epoch + 1} due to no improvement in validation loss.')
         break
 
+print('Done training...')
 
-print('done training ...')
 # Evaluation
 model.eval()
 all_preds = []
