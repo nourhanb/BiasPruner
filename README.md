@@ -32,3 +32,17 @@ Before running the script, ensure that you have the following software and libra
 ## Example
 Here is an example of how to run the script with specific arguments:
 `python main.py --dataset ham --num_classes 3 --learning_rate 0.01 --num_epochs 50 --patience 10`
+
+
+## Citation 
+If you use this code in your research, please consider citing:
+
+```text
+@article{bayasi2024biaspruner,
+  title={BiasPruner: Debiased Continual Learning for Medical Image Classification},
+  author={Bayasi, Nourhan and Fayyad, Jamil and Bissoto, Alceu and Hamarneh, Ghassan and Garbi, Rafeef},
+  journal={International Conference on Medical Image Computing and Computer-Assisted Intervention ({MICCAI})},
+  year={2024}
+}
+```
+
