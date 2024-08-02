@@ -31,17 +31,27 @@ Before running the script, ensure that you have the following software and libra
 - scikit-learn
 - tqdm
 
-## Example
-Here is an example of how to run the script with specific arguments:
-**Train the model
-`python main.py --train --learning_rate 0.001 --train_epochs 50 --weights_original /path/to/original_weights.pth`
+## How to Run
 
-** Prune the model
-`python your_script_name.py --prune --pruning_ratio 0.5 --weights_original /path/to/original_weights.pth`
+This script can perform model training, pruning, and fine-tuning using command-line arguments. Below are examples of how to run the script with different configurations.
 
-** Fine-tune the model
-`python your_script_name.py --finetune --learning_rate 0.0005 --finetune_epochs 30 --weights_finetuned /path/to/finetuned_weights.pth`
+### Train the Model
 
+To train the model with a specified learning rate and number of epochs:
+
+```bash
+python main.py --train --learning_rate 0.001 --train_epochs 50 --weights_original /path/to/original_weights.pth
+```
+### Prune the Model
+```bash
+python main.py --prune --pruning_ratio 0.5 --weights_original /path/to/original_weights.pth
+```
+
+### Fine-tune the Model
+```bash
+python main.py --finetune --learning_rate 0.0005 --finetune_epochs 30 --weights_finetuned /path/to/finetuned_weights.pth
+
+```
 
 ## Citation 
 If you use this code in your research, please consider citing:
