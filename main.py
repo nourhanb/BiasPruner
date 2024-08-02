@@ -1,133 +1,378 @@
 import argparse
-import pandas as pd
-import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
 import numpy as np
-from torchvision import models
-import torch.optim as optim
-from tqdm import tqdm
-from datasets import get_dataset
-from train import train, validate
-from trainer import train_model
+import random
+import os
+import pickle
+from sklearn.metrics import accuracy_score, classification_report, balanced_accuracy_score, f1_score, recall_score
+import param
+from attributes import get_bias
+
+from functions import get_S_bc_S_ba2, get_conv2d_output, GeneralizedCELoss, WCE
+from get_dataloaders import loaders
+from models import *
+from trainer import train_model, finetune_model
 from test import test
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, recall_score
+from fairlearn.metrics import MetricFrame
+from fairlearn.metrics import demographic_parity_ratio, demographic_parity_difference
+from my_fairlearn import *
 
-# Set up argument parser
-parser = argparse.ArgumentParser(description='Train BiasPruner')
 
-parser.add_argument('--dataset', type=str, choices=['Fitzpatrick', 'ham', 'NIH'], default='Fitzpatrick', help='Name of the dataset to use.')
-parser.add_argument('--num_classes', type=int, default=2, help='Number of classes for classification.')
-parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate for the optimizer.')
-parser.add_argument('--num_epochs', type=int, default=100, help='Number of epochs to train the model.')
-parser.add_argument('--patience', type=int, default=5, help='Number of epochs to wait for improvement before early stopping.')
+def main(args):
+    # 1) Define the seeds and device
+    seed = 42
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)
+    random.seed(seed)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-args = parser.parse_args()
+    # 2) Define dataloaders
+    train_loader, valid_loader, test_loader, samples_loader = loaders(param.NIH_base_meta, param.NIH_root, param.NIH_transform)
 
-# Use arguments
-num_classes = args.num_classes
-learning_rate = args.learning_rate
-num_epochs = args.num_epochs
-patience = args.patience
+    # 3) Define model
+    cfg = [16, 16, 16, 16, 16, 16, 16, 16, 16,
+           32, 32, 32, 32, 32, 32, 32, 32, 32,
+           64, 64, 64, 64, 64, 64, 64, 64, 64]
 
-# Load dataset
-trainloader, valloader, testloader = get_dataset(args.dataset)
+    model = resnet56_cifar(cfg=cfg)
+    model = model.to(device)
 
-print('Done loading data...')
+    if args.train:
+        # 4) Training loss and optimizer
+        criterion = GeneralizedCELoss(q=0.7).to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay, betas=(0.9, 0.999))
 
-# Create ResNet18 model
-model = models.resnet18(pretrained=True)
-num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, num_classes)
+        # 5) Training loop
+        epoch_num = args.train_epochs
+        image_loss_list = train_model(model, train_loader, valid_loader, criterion, optimizer, epoch_num, device,
+                                      save_weights=True, original_model=True)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f'Device: {device}')
-model.to(device)
+        with open('image_loss_list_nih.pkl', 'wb') as f:
+            pickle.dump(image_loss_list, f)
 
-# Set up loss function and optimizer
-criterion = nn.CrossEntropyLoss().to(device)
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-# Training loop
-best_val_loss = float('inf')
-counter = 0  # Counter to keep track of epochs without improvement
-
-for epoch in range(num_epochs):
-    model.train()
-    total_loss = 0.0
-    correct_predictions = 0
-    total_samples = 0
-
-    for images, labels in trainloader:
-        images, labels = images.to(device), labels.to(device)
-        optimizer.zero_grad()
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-
-        # Update total loss
-        total_loss += loss.item()
-
-        # Update total and correct predictions for accuracy calculation
-        _, predicted = torch.max(outputs.data, 1)
-        total_samples += labels.size(0)
-        correct_predictions += (predicted == labels).sum().item()
-
-    # Calculate average loss and accuracy for the epoch
-    average_loss = total_loss / len(trainloader)
-    accuracy = correct_predictions / total_samples
-
-    # Print the results after each epoch
-    print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {average_loss:.4f}, Accuracy: {accuracy:.4f}')
-
-    # Validation step
-    model.eval()
-    val_loss = 0.0
-    with torch.no_grad():
-        for val_images, val_labels in valloader:
-            val_images, val_labels = val_images.to(device), val_labels.to(device)
-            val_outputs = model(val_images)
-            val_loss += criterion(val_outputs, val_labels).item()
-
-    average_val_loss = val_loss / len(valloader)
-
-    # Check if validation loss has improved
-    if average_val_loss < best_val_loss:
-        best_val_loss = average_val_loss
-        counter = 0  # Reset counter
+        weightpath_original = args.weights_original
     else:
-        counter += 1
+        print("Weights of Original model are loaded without training")
+        weightpath_original = args.weights_original
+        model.load_state_dict(torch.load(weightpath_original))
+        model.to(device)
 
-    # Check for early stopping
-    if counter >= patience:
-        print(f'Early stopping at epoch {epoch + 1} due to no improvement in validation loss.')
-        break
+    if not args.train:
+        with open('image_loss_list_nih.pkl', 'rb') as f:
+            image_loss_list = pickle.load(f)
 
-print('Done training...')
+    # 6) Test model
+    all_labels, all_preds, all_sensitive_attributes = test(model, test_loader, device, weightpath_original)
 
-# Evaluation
-model.eval()
-all_preds = []
-all_labels = []
-with torch.no_grad():
-    for images, labels in testloader:
-        images, labels = images.to(device), labels.to(device)
-        outputs = model(images)
-        _, preds = torch.max(outputs, 1)
-        all_preds.extend(preds.cpu().numpy())
-        all_labels.extend(labels.cpu().numpy())
+    if args.prune:
+        # 7) Pruning
+        # a) Get S_ba and S_bc
+        S_bc, S_ba = get_S_bc_S_ba2(samples_loader, model, device)
 
-# Calculate metrics
-def calculate_metrics(y_true, y_pred):
-    accuracy = accuracy_score(y_true, y_pred)
-    balanced_accuracy = balanced_accuracy_score(y_true, y_pred)
-    f1 = f1_score(y_true, y_pred, average='weighted')  # 'weighted' accounts for class imbalance
-    recall = recall_score(y_true, y_pred, average='weighted')
-    return accuracy, balanced_accuracy, f1, recall
+        get_bias(S_ba, S_bc, samples_loader)
 
-accuracy, balanced_accuracy, f1, recall = calculate_metrics(all_labels, all_preds)
-print(f'Accuracy: {accuracy:.4f}')
-print(f'Balanced Accuracy: {balanced_accuracy:.4f}')
-print(f'F1 Score: {f1:.4f}')
-print(f'Recall: {recall:.4f}')
+        # b) Get bias score
+        bias_alligned = get_conv2d_output(model, S_ba, samples_loader, device)
+        bias_conflicting = get_conv2d_output(model, S_bc, samples_loader, device)
+
+        bias_score = {}
+
+        if bias_alligned and bias_conflicting:  # Check if both dictionaries are not empty
+            bias_score = {key: bias_alligned[key] - bias_conflicting[key] for key in bias_alligned}
+        elif bias_alligned:  # If only bias_conflicting is empty
+            bias_score = bias_alligned.copy()
+        elif bias_conflicting:  # If only bias_alligned is empty
+            bias_score = {key: -bias_conflicting[key] for key in bias_conflicting}
+
+        # c) Calculate Threshold
+        total_channel = 0
+        index = 0
+        for n in list(bias_score.values()):
+            total_channel = total_channel + n.shape[0]
+        print('total_channel:', total_channel)
+
+        feature_s = torch.zeros(total_channel)
+        for n in list(bias_score.values()):
+            size = n.shape[0]
+            feature_s[index:(index + size)] = n
+            index = index + size
+
+        y, i = torch.sort(feature_s, descending=True)
+        thre_index = int(total_channel * args.pruning_ratio)
+        thre = y[thre_index]
+
+        # d) Prune
+        pruned = 0
+        cfg1 = []
+        cfg_mask = []
+        # i = 0
+        for i in range(27):
+            print('i=', i)
+            feature_copy = list(bias_score.values())[i]
+            mask = feature_copy.gt(thre).float()  # .cuda()    [1 1 1 0 0]   [3]
+            if torch.sum(mask) == 0:
+                cfg1.append(len(feature_copy))
+                cfg_mask.append(torch.ones(len(feature_copy)).float())  # .cuda())
+                print('total channel: {:d} \t remaining channel: {:d}'.
+                      format(len(feature_copy), int(len(feature_copy))))
+            else:
+                pruned = pruned + mask.shape[0] - torch.sum(mask)
+                cfg1.append(int(torch.sum(mask)))
+                cfg_mask.append(mask.clone())
+                print('total channel: {:d} \t remaining channel: {:d}'.
+                      format(mask.shape[0], int(torch.sum(mask))))
+
+        cfg_mask1 = []
+        j = 0
+        out = torch.ones(16).float()  # .cuda()#1
+        cfg_mask1.append(out)
+
+        print(cfg_mask[j])
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float())  # .cuda())#3
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float().cuda())  # 5
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float().cuda())  # 7
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float().cuda())  # 9
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float().cuda())  # 11
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float().cuda())  # 13
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float().cuda())  # 15
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float().cuda())  # 17
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(16).float().cuda())  # 19
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 21
+        cfg_mask1.append(22)  # 22
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 24
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 26
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 28
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 30
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 32
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 34
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 36
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(32).float().cuda())  # 38
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 40
+        cfg_mask1.append(41)  # 41
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 43
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 45
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 47
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 49
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 51
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 53
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 55
+
+        cfg_mask1.append(cfg_mask[j])
+        j = j + 1
+        cfg_mask1.append(torch.ones(64).float().cuda())  # 57
+
+        pruned_ratio = pruned / total_channel
+        print('pruned_ratio=', pruned_ratio)
+
+        print('Pre-processing Successful!')
+
+        # e) Save pruned model
+        newmodel = resnet56_cifar(cfg=cfg1)
+        newmodel.to(device)
+
+        num_parameters = sum([param.nelement() for param in newmodel.parameters()])
+        savepath = os.path.join(param.pruned_path, "prune3_task1.txt")
+        with open(savepath, "w") as fp:
+            fp.write("Configuration: \n" + str(cfg1) + "\n")
+            fp.write("Number of parameters: \n" + str(num_parameters) + "\n")
+            fp.write("pruned: \n" + str(pruned) + "\n")
+            fp.write("pruned_ratio: \n" + str(pruned_ratio) + "\n")
+
+        layer_id_in_cfg = 0
+        start_mask = torch.ones(3)
+        end_mask = cfg_mask1[layer_id_in_cfg]
+        t = 1
+        down = [22, 41]
+
+        for [m0, m1] in zip(model.modules(), newmodel.modules()):
+            if t in down:
+                if isinstance(m0, nn.Conv2d):
+                    m1.weight.data = m0.weight.data
+                elif isinstance(m0, nn.BatchNorm2d):
+                    m1.weight.data = m0.weight.data
+                    m1.bias.data = m0.bias.data
+                    m1.running_mean = m0.running_mean
+                    m1.running_var = m0.running_var
+                    layer_id_in_cfg += 1
+                    t += 1
+                    if layer_id_in_cfg < len(cfg_mask1):
+                        end_mask = cfg_mask1[layer_id_in_cfg]
+            elif isinstance(m0, nn.BatchNorm2d):
+                idx1 = np.squeeze(np.argwhere(np.asarray(end_mask.cpu().numpy())))
+                if idx1.size == 1:
+                    idx1 = np.resize(idx1, (1,))
+                m1.weight.data = m0.weight.data[idx1.tolist()].clone()
+                m1.bias.data = m0.bias.data[idx1.tolist()].clone()
+                m1.running_mean = m0.running_mean[idx1.tolist()].clone()
+                m1.running_var = m0.running_var[idx1.tolist()].clone()
+                layer_id_in_cfg += 1
+                t += 1
+                start_mask = end_mask.clone()
+                if layer_id_in_cfg < len(cfg_mask1):  # do not change in Final FC
+                    end_mask = cfg_mask1[layer_id_in_cfg]
+            elif isinstance(m0, nn.Conv2d):
+                idx0 = np.squeeze(np.argwhere(np.asarray(start_mask.cpu().numpy())))
+                idx1 = np.squeeze(np.argwhere(np.asarray(end_mask.cpu().numpy())))
+                if idx0.size == 1:
+                    idx0 = np.resize(idx0, (1,))
+                if idx1.size == 1:
+                    idx1 = np.resize(idx1, (1,))
+                w1 = m0.weight.data[:, idx0.tolist(), :, :].clone()
+                w1 = w1[idx1.tolist(), :, :, :].clone()
+                m1.weight.data = w1.clone()
+
+        torch.save({'cfg': cfg1, 'state_dict': newmodel.state_dict()}, os.path.join(param.pruned_path, 'pruned0.1_50.pth.tar'))
+
+    print("Pruning weights are loaded")
+    prune_path = os.path.join(param.pruned_path, 'pruned0.1_50.pth.tar')
+    checkpoint = torch.load(prune_path)
+    pruned_model = resnet56_cifar(cfg=checkpoint['cfg'])
+    pruned_model.load_state_dict(checkpoint['state_dict'])
+    pruned_model.to(device)
+
+    all_labels, all_preds, all_sensitive_attributes = test(pruned_model, test_loader, device)
+
+    if args.finetune:
+        print('Fine-Tuning now!')
+        tune_criterion = nn.CrossEntropyLoss()
+        finetune_optimizer = torch.optim.Adam(pruned_model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay, betas=(0.9, 0.999))
+        finetune_epochs = args.finetune_epochs
+
+        finetune_model(pruned_model, train_loader, valid_loader, tune_criterion, finetune_optimizer, finetune_epochs,
+                       device, image_loss_list=None, save_weights=True)
+
+    wp = args.weights_finetuned
+    all_labels, all_preds, all_sensitive_attributes = test(pruned_model, test_loader, device, wp)
+
+    # Overall Accuracy
+    overall_accuracy = accuracy_score(all_labels, all_preds)
+    print(f'Overall Accuracy: {overall_accuracy:.4f}')
+
+    # Evaluation on the test set
+    print('\nTest Classification Report:')
+    print(classification_report(all_labels, all_preds))
+
+    dp_ratio = demographic_parity_ratio_mine(all_labels, all_preds, sensitive_features=all_sensitive_attributes)
+    print(f'Demographic Parity ratio: {dp_ratio:.4f}')
+
+    mf_acc = MetricFrame(metrics=accuracy_score, y_true=all_labels, y_pred=all_preds, sensitive_features=all_sensitive_attributes)
+    print('Performance (accuracy) overall', mf_acc.overall)
+    print('Performance (accuracy) by group', mf_acc.by_group)
+
+    mf_balanced = MetricFrame(metrics=balanced_accuracy_score, y_true=all_labels, y_pred=all_preds, sensitive_features=all_sensitive_attributes)
+    print('Performance (balanced accuracy) overall', mf_balanced.overall)
+    print('Performance (balanced accuracy) by group', mf_balanced.by_group)
+
+    # Convert to numpy arrays
+    all_labels = np.array(all_labels)
+    all_preds = np.array(all_preds)
+    all_sensitive_attributes = np.array(all_sensitive_attributes)
+
+    # Calculate Recall
+    recall = recall_score(all_labels, all_preds, average='weighted')
+
+    # Calculate F1 Score
+    f1 = f1_score(all_labels, all_preds, average='weighted')
+
+    print("Recall:", recall)
+    print("F1 Score:", f1)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Model Training and Pruning')
+
+    parser.add_argument('--train', action='store_true', help='Flag to indicate training mode')
+    parser.add_argument('--prune', action='store_true', help='Flag to indicate pruning mode')
+    parser.add_argument('--finetune', action='store_true', help='Flag to indicate finetuning mode')
+    parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate for training')
+    parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay for optimizer')
+    parser.add_argument('--train_epochs', type=int, default=param.train_epochs, help='Number of training epochs')
+    parser.add_argument('--finetune_epochs', type=int, default=param.finetune_epochs, help='Number of finetuning epochs')
+    parser.add_argument('--pruning_ratio', type=float, default=0.1, help='Pruning ratio for model pruning')
+    parser.add_argument('--weights_original', type=str, default='/home/jfayyad/PycharmProjects/BiasWashV2/weights/original_ham_task1.pth',
+                        help='Path to the original model weights')
+    parser.add_argument('--weights_finetuned', type=str, default=param.weights_finetuned,
+                        help='Path to the finetuned model weights')
+
+    args = parser.parse_args()
+    main(args)
