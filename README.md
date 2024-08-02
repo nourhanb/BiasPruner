@@ -33,7 +33,14 @@ Before running the script, ensure that you have the following software and libra
 
 ## Example
 Here is an example of how to run the script with specific arguments:
-`python main.py --dataset ham --num_classes 3 --learning_rate 0.01 --num_epochs 50 --patience 10`
+**Train the model
+`python main.py --train --learning_rate 0.001 --train_epochs 50 --weights_original /path/to/original_weights.pth`
+
+** Prune the model
+`python your_script_name.py --prune --pruning_ratio 0.5 --weights_original /path/to/original_weights.pth`
+
+** Fine-tune the model
+`python your_script_name.py --finetune --learning_rate 0.0005 --finetune_epochs 30 --weights_finetuned /path/to/finetuned_weights.pth`
 
 
 ## Citation 
